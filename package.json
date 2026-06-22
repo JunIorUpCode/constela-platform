@@ -1,0 +1,44 @@
+{
+  "name": "constela-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plataforma SaaS de Constelação Online 3D",
+  "author": "UpCode",
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "lint:fix": "turbo lint:fix",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "test:watch": "turbo test:watch",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
+    "db:generate": "turbo db:generate",
+    "db:push": "turbo db:push",
+    "db:migrate": "turbo db:migrate",
+    "db:seed": "turbo db:seed",
+    "db:studio": "pnpm --filter @constela/db studio",
+    "clean": "turbo clean && rm -rf node_modules",
+    "docker:up": "docker compose -f docker-compose.yml up -d",
+    "docker:down": "docker compose -f docker-compose.yml down"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5",
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "typescript": "^5.4.0"
+    }
+  }
+}

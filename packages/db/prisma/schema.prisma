@@ -1,0 +1,384 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==============================================
+// Multi-Tenant
+// ==============================================
+
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users    User[]
+  sessions Session[]
+
+  @@index([slug])
+}
+
+// ==============================================
+// Users & Authentication
+// ==============================================
+
+model User {
+  id           String    @id @default(cuid())
+  tenantId     String?
+  email        String    @unique
+  name         String
+  passwordHash String?
+  role         UserRole  @default(CLIENT)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  lastLoginAt  DateTime?
+
+  tenant              Tenant?              @relation(fields: [tenantId], references: [id])
+  practitionerProfile  PractitionerProfile?
+  clientProfile        ClientProfile?
+  sessions             Session[]
+  auditLogs            AuditLog[]
+  consentAcceptances   ConsentAcceptance[]
+
+  @@index([tenantId])
+  @@index([email])
+  @@index([role])
+}
+
+enum UserRole {
+  PLATFORM_ADMIN
+  TENANT_ADMIN
+  PRACTITIONER
+  CLIENT
+  GUEST
+  OBSERVER
+}
+
+model PractitionerProfile {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  bio              String?
+  sessionPrice     Int?     // Price in cents
+  sessionDuration  Int?     // Duration in minutes
+  avatarUrl        String?
+  publicProfile    Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions     Session[]
+  availability AvailabilityRule[]
+  blocks       AvailabilityBlock[]
+
+  @@index([userId])
+}
+
+model ClientProfile {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  phone     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+  participants SessionParticipant[]
+
+  @@index([userId])
+}
+
+// ==============================================
+// Sessions & Scheduling
+// ==============================================
+
+model Session {
+  id             String        @id @default(cuid())
+  tenantId       String
+  practitionerId String
+  title          String
+  description    String?
+  type           SessionType
+  status         SessionStatus @default(DRAFT)
+  startsAt       DateTime
+  endsAt         DateTime
+  priceCents     Int?
+  notes          String?       // Private notes from practitioner
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  tenant        Tenant               @relation(fields: [tenantId], references: [id])
+  practitioner  PractitionerProfile  @relation(fields: [practitionerId], references: [id])
+  participants  SessionParticipant[]
+  sceneEvents   SceneEvent[]
+  sceneSnapshots SceneSnapshot[]
+  payment       Payment?
+  consentAcceptances ConsentAcceptance[]
+
+  @@index([tenantId])
+  @@index([practitionerId])
+  @@index([status])
+  @@index([startsAt])
+}
+
+enum SessionType {
+  INDIVIDUAL
+  GROUP_CLOSED
+  GROUP_WITH_OBSERVERS
+  DEMONSTRATION
+}
+
+enum SessionStatus {
+  DRAFT
+  SCHEDULED
+  AWAITING_PAYMENT
+  PAID
+  READY
+  IN_PROGRESS
+  COMPLETED
+  CANCELED
+  NO_SHOW
+}
+
+model SessionParticipant {
+  id              String          @id @default(cuid())
+  sessionId       String
+  userId          String
+  role            ParticipantRole
+  canMoveElements Boolean         @default(false)
+  joinedAt        DateTime?
+  leftAt          DateTime?
+  createdAt       DateTime        @default(now())
+
+  session Session      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    ClientProfile @relation(fields: [userId], references: [id])
+
+  @@unique([sessionId, userId])
+  @@index([sessionId])
+  @@index([userId])
+}
+
+enum ParticipantRole {
+  CLIENT
+  REPRESENTATIVE
+  OBSERVER
+  GUEST
+}
+
+model Appointment {
+  id              String   @id @default(cuid())
+  clientId        String
+  practitionerId  String
+  requestedAt     DateTime
+  status          AppointmentStatus @default(PENDING)
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  client       ClientProfile @relation(fields: [clientId], references: [id])
+  practitioner PractitionerProfile @relation(fields: [practitionerId], references: [id])
+
+  @@index([clientId])
+  @@index([practitionerId])
+  @@index([requestedAt])
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+// ==============================================
+// Availability
+// ==============================================
+
+model AvailabilityRule {
+  id              String   @id @default(cuid())
+  practitionerId  String
+  dayOfWeek       Int      // 0 = Sunday, 6 = Saturday
+  startTime       String   // HH:mm format
+  endTime         String   // HH:mm format
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  practitioner PractitionerProfile @relation(fields: [practitionerId], references: [id], onDelete: Cascade)
+
+  @@unique([practitionerId, dayOfWeek])
+  @@index([practitionerId])
+}
+
+model AvailabilityBlock {
+  id              String   @id @default(cuid())
+  practitionerId  String
+  startDate       DateTime
+  endDate         DateTime
+  reason          String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  practitioner PractitionerProfile @relation(fields: [practitionerId], references: [id], onDelete: Cascade)
+
+  @@index([practitionerId])
+  @@index([startDate, endDate])
+}
+
+// ==============================================
+// Payments
+// ==============================================
+
+model Payment {
+  id          String         @id @default(cuid())
+  sessionId  String         @unique
+  amountCents Int
+  method      PaymentMethod
+  status      PaymentStatus @default(PENDING)
+  externalId  String?        // Mercado Pago payment ID
+  qrCode      String?        // Base64 QR Code for Pix
+  qrCodeUrl   String?        // URL for Pix QR Code
+  paidAt      DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([externalId])
+  @@index([status])
+}
+
+enum PaymentMethod {
+  PIX
+  CARD
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELED
+  REFUNDED
+  EXPIRED
+}
+
+// ==============================================
+// Consent & LGPD
+// ==============================================
+
+model ConsentTerm {
+  id        String   @id @default(cuid())
+  version   String
+  title     String
+  content   String   @db.Text
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  acceptances ConsentAcceptance[]
+
+  @@index([isActive])
+}
+
+model ConsentAcceptance {
+  id            String   @id @default(cuid())
+  consentTermId String
+  userId        String
+  sessionId     String?
+  ipAddress     String
+  userAgent     String
+  acceptedAt    DateTime @default(now())
+
+  consentTerm ConsentTerm @relation(fields: [consentTermId], references: [id])
+  user        User        @relation(fields: [userId], references: [id])
+  session     Session?    @relation(fields: [sessionId], references: [id])
+
+  @@unique([consentTermId, userId, sessionId])
+  @@index([userId])
+  @@index([sessionId])
+}
+
+// ==============================================
+// Scene & 3D Room
+// ==============================================
+
+model SceneEvent {
+  id         String        @id @default(cuid())
+  sessionId  String
+  eventType  String
+  payload    Json
+  version    Int           @default(1)
+  createdBy  String
+  createdAt  DateTime      @default(now())
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+model SceneSnapshot {
+  id         String   @id @default(cuid())
+  sessionId  String
+  imageUrl   String
+  sceneData  Json     // Full scene state snapshot
+  createdBy  String
+  createdAt  DateTime @default(now())
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+}
+
+// ==============================================
+// Audit & Security
+// ==============================================
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  tenantId   String?
+  userId     String?
+  action     String
+  entityType String?
+  entityId   String?
+  payload    Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user   User?   @relation(fields: [userId], references: [id])
+  tenant Tenant? @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ==============================================
+// Notifications
+// ==============================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  message   String   @db.Text
+  data      Json?
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([readAt])
+}
