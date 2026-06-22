@@ -1183,17 +1183,26 @@ async function middleware(req) {
 - [x] LiveKit token generation e API de tokens
 - [x] VideoPanel com grid de participantes
 - [x] Permissões por role (host/guest/observer)
+- [x] API de snapshots (criar, listar)
+- [x] API de scene events (timeline de eventos)
+- [x] API de notas (públicas e privadas)
+- [x] AIProvider com OpenAI e prompts seguros
+- [x] SessionSummaryService, PostSessionMessage, Checklist
+- [x] Bloqueios de diagnóstico e conselho clínico
+- [x] BullMQ worker para notificações
+- [x] Email queue com templates
+- [x] ConsentTerm e ConsentAcceptance
+- [x] AuditLog para ações críticas
+- [x] Export e delete de dados do usuário (LGPD)
+
+### 🎉 PROJETO CORE COMPLETO
 
 ### 🔄 Em Andamento
-- [ ] Etapa 8: Histórico visual e snapshots
+- Nenhuma
 
-### 📋 Ainda Não Iniciado
-- [ ] Etapa 11: Histórico visual
-- [ ] Etapa 12: IA assistiva
-- [ ] Etapa 13: Notificações
-- [ ] Etapa 14: Segurança, LGPD e auditoria
-- [ ] Etapa 15: Testes e QA
-- [ ] Etapa 16: Deploy e produção
+### 📋 Próximos Passos (Opcionais)
+- [ ] Testes e QA
+- [ ] Deploy e produção
 
 ### 🔒 Bloqueado
 - Nenhum
