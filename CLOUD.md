@@ -1171,9 +1171,15 @@ async function middleware(req) {
 - [x] API de Participants (participantes de sessão)
 - [x] API de Practitioners (listagem e perfil público)
 - [x] API de Practitioners Clients (clientes do constelador)
+- [x] Integração Mercado Pago (Pix, Cartão, Webhook)
+- [x] PaymentProvider com interface abstrata
+- [x] Package @constela/three-room com React Three Fiber
+- [x] RoomCanvas, SceneEntity, FieldBase, GridHelper
+- [x] Zustand store para gerenciamento de estado da cena
+- [x] CameraController com múltiplos modos (TOP, FRONT, PERSPECTIVE)
 
 ### 🔄 Em Andamento
-- [ ] Etapa 4: Pagamentos (Mercado Pago)
+- [ ] Etapa 6: Realtime da sala (Socket.IO)
 
 ### 📋 Ainda Não Iniciado
 - [ ] Etapa 4: Painel administrativo
