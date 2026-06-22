@@ -1160,12 +1160,22 @@ async function middleware(req) {
 - [x] .env.example criado
 - [x] Prisma schema completo com 15+ entidades
 - [x] Seed com admin inicial e contas de teste
+- [x] Sistema de autenticação JWT completo
+- [x] Middleware Next.js para proteção de rotas
+- [x] RBAC com 6 perfis implementados
+- [x] Páginas de login, registro, forgot-password
+- [x] Dashboards para Admin, Constelador e Cliente
+- [x] API de Sessions (CRUD, start, end)
+- [x] API de Availability (regras de disponibilidade)
+- [x] API de Availability Blocks (bloqueios)
+- [x] API de Participants (participantes de sessão)
+- [x] API de Practitioners (listagem e perfil público)
+- [x] API de Practitioners Clients (clientes do constelador)
 
 ### 🔄 Em Andamento
-- [ ] Etapa 2: Modelagem de dados (Prisma, migrations)
+- [ ] Etapa 4: Pagamentos (Mercado Pago)
 
 ### 📋 Ainda Não Iniciado
-- [ ] Etapa 3: Autenticação e autorização
 - [ ] Etapa 4: Painel administrativo
 - [ ] Etapa 5: Painel do constelador
 - [ ] Etapa 6: Agenda
