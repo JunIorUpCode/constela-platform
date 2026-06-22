@@ -1177,18 +1177,17 @@ async function middleware(req) {
 - [x] RoomCanvas, SceneEntity, FieldBase, GridHelper
 - [x] Zustand store para gerenciamento de estado da cena
 - [x] CameraController com múltiplos modos (TOP, FRONT, PERSPECTIVE)
+- [x] Servidor Socket.IO com RoomManager
+- [x] Eventos realtime: avatar add/move/rotate, object add/move/delete
+- [x] Controle de permissões e snapshots de cena
+- [x] LiveKit token generation e API de tokens
+- [x] VideoPanel com grid de participantes
+- [x] Permissões por role (host/guest/observer)
 
 ### 🔄 Em Andamento
-- [ ] Etapa 6: Realtime da sala (Socket.IO)
+- [ ] Etapa 8: Histórico visual e snapshots
 
 ### 📋 Ainda Não Iniciado
-- [ ] Etapa 4: Painel administrativo
-- [ ] Etapa 5: Painel do constelador
-- [ ] Etapa 6: Agenda
-- [ ] Etapa 7: Pagamentos
-- [ ] Etapa 8: Sala 3D offline
-- [ ] Etapa 9: Realtime da sala
-- [ ] Etapa 10: LiveKit/videochamada
 - [ ] Etapa 11: Histórico visual
 - [ ] Etapa 12: IA assistiva
 - [ ] Etapa 13: Notificações
